@@ -66,6 +66,8 @@ function deleteCategory(id) {
   renderCategoryList();
 }
 renderCategoryList();
+renderFilterButtons();
+renderFilterButtons();
 
 document.getElementById("taskForm").addEventListener("submit", e => {
   e.preventDefault();
@@ -108,20 +110,63 @@ function renderTasks(filterId = null) {
       taskList.appendChild(li);
     });
 }
+const filterCategory = document.getElementById("filterCategory");
+let activeFilter = null;
+function renderFilterButtons() {
+  filterCategory.innerHTML = "";
+
+  // Tombol Semua
+  const allBtn = document.createElement("button");
+  allBtn.textContent = "Semua";
+  allBtn.onclick = () => {
+    activeFilter = null;
+    renderTasks();
+  };
+  filterCategory.appendChild(allBtn);
+
+  // Tombol per kategori
+  categories.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.textContent = `${cat.icon} ${cat.name}`;
+    btn.style.backgroundColor = cat.color;
+    btn.style.color = "white";
+
+    btn.onclick = () => {
+      activeFilter = cat.id;
+      renderTasks();
+    };
+
+    filterCategory.appendChild(btn);
+  });
+}
 
 renderTasks();
-function toggleTask(id) {
-  const task = tasks.find(t => t.id === id);
-  task.completed = !task.completed;
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-  renderTasks();
-}
-function reactTask(id) {
-  const emoji = prompt("Masukkan emoji:");
-  if (!emoji) return;
+renderFilterButtons();
 
-  const task = tasks.find(t => t.id === id);
-  task.reaction = emoji;
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-  renderTasks();
+function renderTasks() {
+  taskList.innerHTML = "";
+
+  tasks
+    .filter(task => !activeFilter || task.categoryId == activeFilter)
+    .forEach(task => {
+
+      const category = categories.find(cat => cat.id == task.categoryId);
+
+      const li = document.createElement("li");
+      li.className = "task";
+      li.style.borderLeft = `5px solid ${category.color}`;
+
+      li.innerHTML = `
+        <span style="text-decoration:${task.completed ? 'line-through' : 'none'}">
+          ${category.icon} ${task.text} ${task.reaction}
+        </span>
+        <div>
+          <button onclick="toggleTask(${task.id})">✔</button>
+          <button onclick="reactTask(${task.id})">😊</button>
+        </div>
+      `;
+
+      taskList.appendChild(li);
+    });
 }
+
