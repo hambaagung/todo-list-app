@@ -9,34 +9,43 @@
 <body>
 
   <div class="app">
-    <h1>Todo List</h1>
+  <h1>Todo List</h1>
 
-    <!-- Form tambah task -->
-     <h3>Kelola Kategori</h3>
+  <!-- Kelola Kategori -->
+  <section class="section">
+    <h3>Kelola Kategori</h3>
+    <form id="categoryForm" class="flex">
+      <input type="text" id="categoryName" placeholder="Nama kategori">
+      <input type="color" id="categoryColor">
+      <input type="text" id="categoryIcon" placeholder="Icon">
+      <button type="submit">Tambah</button>
+    </form>
+    <ul id="categoryList" class="category-list"></ul>
+  </section>
 
-<form id="categoryForm">
-  <input type="text" id="categoryName" placeholder="Nama kategori">
-  <input type="color" id="categoryColor">
-  <input type="text" id="categoryIcon" placeholder="Icon (emoji)">
-  <button type="submit">Tambah</button>
-</form>
-
-<ul id="categoryList"></ul>
-
-    <form id="taskForm">
-      <input type="text" id="taskInput" placeholder="Tulis task..." />
+  <!-- Tambah Task -->
+  <section class="section">
+    <h3>Tambah Task</h3>
+    <form id="taskForm" class="flex">
+      <input type="text" id="taskInput" placeholder="Tulis task...">
       <select id="categorySelect"></select>
       <button type="submit">Tambah</button>
     </form>
+  </section>
 
-    <!-- Filter kategori -->
+  <!-- Filter -->
+  <section class="section">
     <h3>Filter Kategori</h3>
-<div id="filterCategory"></div>
+    <div id="filterCategory" class="filter-container"></div>
+  </section>
 
-
-    <!-- List task -->
+  <!-- Task List -->
+  <section class="section">
+    <h3>Daftar Task</h3>
     <ul id="taskList"></ul>
-  </div>
+  </section>
+</div>
+
 
   <script src="js/app.js"></script>
 </body>
