@@ -1,25 +1,26 @@
-// ================= DATA =================
+// ================== STORAGE ==================
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let categories = JSON.parse(localStorage.getItem("categories")) || [
-  { id: 1, name: "Umum", color: "#2196f3", icon: "📌" }
+  { id: 1, name: "Umum", color: "#00f5ff", icon: "📌" }
 ];
 
-let activeFilter = null;
-
-// ================= ELEMENT =================
+// ================== ELEMENT ==================
 const categoryForm = document.getElementById("categoryForm");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("categorySelect");
 const taskForm = document.getElementById("taskForm");
 const taskList = document.getElementById("taskList");
 const filterCategory = document.getElementById("filterCategory");
+const searchInput = document.getElementById("searchInput");
+const totalTask = document.getElementById("totalTask");
+const completedTask = document.getElementById("completedTask");
+const pendingTask = document.getElementById("pendingTask");
 
-const categoryName = document.getElementById("categoryName");
-const categoryColor = document.getElementById("categoryColor");
-const categoryIcon = document.getElementById("categoryIcon");
-const taskInput = document.getElementById("taskInput");
+// ================== STATE ==================
+let activeCategoryFilter = null;
+let activeStatusFilter = "all";
 
-// ================= SAVE =================
+// ================== SAVE ==================
 function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
@@ -28,9 +29,10 @@ function saveCategories() {
   localStorage.setItem("categories", JSON.stringify(categories));
 }
 
-// ================= CATEGORY =================
+// ================== RENDER CATEGORY SELECT ==================
 function renderCategories() {
   categorySelect.innerHTML = "";
+
   categories.forEach(cat => {
     const option = document.createElement("option");
     option.value = cat.id;
@@ -39,213 +41,220 @@ function renderCategories() {
   });
 }
 
+// ================== RENDER CATEGORY LIST ==================
 function renderCategoryList() {
   categoryList.innerHTML = "";
 
   categories.forEach(cat => {
     const li = document.createElement("li");
     li.innerHTML = `
-      <span style="color:${cat.color}">
+      <span style="color:${cat.color || "#00f5ff"}">
         ${cat.icon} ${cat.name}
       </span>
-      <div>
-        <button onclick="editCategory(${cat.id})">✏</button>
-        <button onclick="deleteCategory(${cat.id})">❌</button>
-      </div>
+      <button onclick="deleteCategory(${cat.id})">❌</button>
     `;
     categoryList.appendChild(li);
   });
 }
 
+// ================== DELETE CATEGORY ==================
+function deleteCategory(id) {
+  categories = categories.filter(cat => cat.id !== id);
+  tasks = tasks.filter(task => task.categoryId != id);
+  saveCategories();
+  saveTasks();
+  renderAll();
+}
+
+// ================== ADD CATEGORY ==================
 categoryForm.addEventListener("submit", e => {
   e.preventDefault();
 
-  const name = categoryName.value.trim();
-  const color = categoryColor.value;
-  const icon = categoryIcon.value.trim();
+  const name = document.getElementById("categoryName").value.trim();
+  const color = document.getElementById("categoryColor").value || "#00f5ff";
+  const icon = document.getElementById("categoryIcon").value.trim();
 
-  if (!name || !icon) {
-    alert("Semua field wajib diisi");
-    return;
-  }
+  if (!name || !icon) return alert("Semua field wajib diisi");
 
-  const duplicate = categories.find(
-    cat => cat.name.toLowerCase() === name.toLowerCase()
-  );
-
-  if (duplicate) {
-    alert("Kategori sudah ada");
-    return;
-  }
-
-  categories.push({
+  const newCategory = {
     id: Date.now(),
     name,
     color,
     icon
-  });
+  };
 
+  categories.push(newCategory);
   saveCategories();
-  renderAll();
   categoryForm.reset();
+  renderAll();
 });
 
-function editCategory(id) {
-  const category = categories.find(cat => cat.id === id);
-  if (!category) return;
-
-  const newName = prompt("Edit nama:", category.name);
-  const newIcon = prompt("Edit icon:", category.icon);
-  const newColor = prompt("Edit warna (#xxxxxx):", category.color);
-
-  if (!newName || !newIcon || !newColor) return;
-
-  category.name = newName.trim();
-  category.icon = newIcon.trim();
-  category.color = newColor.trim();
-
-  saveCategories();
-  renderAll();
-}
-
-function deleteCategory(id) {
-  categories = categories.filter(cat => cat.id !== id);
-  tasks = tasks.filter(task => task.categoryId != id);
-
-  saveCategories();
-  saveTasks();
-  renderAll();
-}
-
-// ================= TASK =================
+// ================== ADD TASK ==================
 taskForm.addEventListener("submit", e => {
   e.preventDefault();
 
-  const text = taskInput.value.trim();
+  const text = document.getElementById("taskInput").value.trim();
+  const categoryId = categorySelect.value;
+  const deadline = document.getElementById("deadlineInput").value;
 
-  if (!text) {
-    alert("Task tidak boleh kosong");
-    return;
-  }
+  if (!text) return;
 
-  tasks.push({
+  const task = {
     id: Date.now(),
     text,
-    categoryId: categorySelect.value,
+    categoryId,
+    deadline,
     completed: false,
     reaction: ""
-  });
+  };
 
+  tasks.push(task);
   saveTasks();
-  taskInput.value = "";
-  renderTasks();
+  taskForm.reset();
+  renderAll();
 });
 
-function renderTasks() {
-  taskList.innerHTML = "";
-
-  tasks
-    .filter(task => !activeFilter || task.categoryId == activeFilter)
-    .forEach(task => {
-
-      const category = categories.find(cat => cat.id == task.categoryId) || {
-        name: "Unknown",
-        color: "#999",
-        icon: "❓"
-      };
-
-      const li = document.createElement("li");
-      li.className = "task";
-      li.style.borderLeft = `5px solid ${category.color}`;
-
-      li.innerHTML = `
-        <span style="text-decoration:${task.completed ? 'line-through' : 'none'}">
-          ${category.icon} ${task.text} ${task.reaction}
-        </span>
-        <div>
-          <button onclick="toggleTask(${task.id})">✔</button>
-          <button onclick="editTask(${task.id})">✏</button>
-          <button onclick="quickReact(${task.id})">😊</button>
-          <button onclick="deleteTask(${task.id})">🗑</button>
-        </div>
-      `;
-
-      taskList.appendChild(li);
-    });
-}
-
+// ================== TOGGLE TASK ==================
 function toggleTask(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task) return;
-
-  task.completed = !task.completed;
+  tasks = tasks.map(task =>
+    task.id === id ? { ...task, completed: !task.completed } : task
+  );
   saveTasks();
-  renderTasks();
+  renderAll();
 }
 
+// ================== DELETE TASK ==================
+function deleteTask(id) {
+  tasks = tasks.filter(task => task.id !== id);
+  saveTasks();
+  renderAll();
+}
+
+// ================== EDIT TASK ==================
 function editTask(id) {
   const task = tasks.find(t => t.id === id);
-  if (!task) return;
-
   const newText = prompt("Edit task:", task.text);
   if (!newText) return;
 
-  task.text = newText.trim();
+  task.text = newText;
   saveTasks();
-  renderTasks();
+  renderAll();
 }
 
-function quickReact(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task) return;
-
-  const emoji = prompt("Pilih emoji: 😊🔥💪🚀❤️");
+// ================== REACT TASK ==================
+function reactTask(id) {
+  const emoji = prompt("Masukkan emoji reaksi:");
   if (!emoji) return;
 
-  task.reaction = emoji;
+  tasks = tasks.map(task =>
+    task.id === id ? { ...task, reaction: emoji } : task
+  );
   saveTasks();
-  renderTasks();
+  renderAll();
 }
 
-function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  saveTasks();
-  renderTasks();
-}
-
-// ================= FILTER =================
+// ================== RENDER FILTER ==================
 function renderFilterButtons() {
   filterCategory.innerHTML = "";
 
   const allBtn = document.createElement("button");
   allBtn.textContent = "Semua";
   allBtn.onclick = () => {
-    activeFilter = null;
-    renderTasks();
+    activeCategoryFilter = null;
+    renderAll();
   };
   filterCategory.appendChild(allBtn);
 
   categories.forEach(cat => {
     const btn = document.createElement("button");
     btn.textContent = `${cat.icon} ${cat.name}`;
-    btn.style.backgroundColor = cat.color;
-    btn.style.color = "white";
-
+    btn.style.background = cat.color || "#00f5ff";
     btn.onclick = () => {
-      activeFilter = cat.id;
-      renderTasks();
+      activeCategoryFilter = cat.id;
+      renderAll();
     };
-
     filterCategory.appendChild(btn);
   });
 }
 
-// ================= RENDER =================
+// ================== STATUS FILTER ==================
+document.querySelectorAll(".filter-status button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeStatusFilter = btn.dataset.status;
+    renderAll();
+  });
+});
+
+// ================== SEARCH ==================
+searchInput.addEventListener("input", () => {
+  renderAll();
+});
+
+// ================== RENDER TASK ==================
+function renderTasks() {
+  taskList.innerHTML = "";
+
+  let filtered = tasks;
+
+  if (activeCategoryFilter) {
+    filtered = filtered.filter(
+      task => task.categoryId == activeCategoryFilter
+    );
+  }
+
+  if (activeStatusFilter === "completed") {
+    filtered = filtered.filter(task => task.completed);
+  }
+
+  if (activeStatusFilter === "pending") {
+    filtered = filtered.filter(task => !task.completed);
+  }
+
+  if (searchInput.value) {
+    filtered = filtered.filter(task =>
+      task.text.toLowerCase().includes(searchInput.value.toLowerCase())
+    );
+  }
+
+  filtered.forEach(task => {
+    const category = categories.find(cat => cat.id == task.categoryId);
+
+    const li = document.createElement("li");
+    li.className = "task";
+    li.style.borderLeft = `5px solid ${category?.color || "#00f5ff"}`;
+
+    li.innerHTML = `
+      <span style="text-decoration:${task.completed ? "line-through" : "none"}">
+        ${category?.icon || "📌"} ${task.text} ${task.reaction || ""}
+        ${task.deadline ? `<small>📅 ${task.deadline}</small>` : ""}
+      </span>
+      <div>
+        <button onclick="toggleTask(${task.id})">✔</button>
+        <button onclick="editTask(${task.id})">✏</button>
+        <button onclick="reactTask(${task.id})">😊</button>
+        <button onclick="deleteTask(${task.id})">🗑</button>
+      </div>
+    `;
+
+    taskList.appendChild(li);
+  });
+}
+
+// ================== STATISTICS ==================
+function updateStats() {
+  totalTask.textContent = tasks.length;
+  completedTask.textContent = tasks.filter(t => t.completed).length;
+  pendingTask.textContent = tasks.filter(t => !t.completed).length;
+}
+
+// ================== MASTER RENDER ==================
 function renderAll() {
   renderCategories();
   renderCategoryList();
   renderFilterButtons();
   renderTasks();
+  updateStats();
 }
 
+// ================== INIT ==================
 renderAll();
