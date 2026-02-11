@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Todo List App</title>
+  <title>Cyberpunk Todo List</title>
+
+  <!-- Google Font Cyberpunk -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<link rel="stylesheet" href="css/style.css">
 
 <body>
 
 <div class="app">
-  <h1>Todo List</h1>
+  <h1>⚡ TODO SYSTEM ⚡</h1>
 
   <!-- ================= KATEGORI ================= -->
   <section class="section">
@@ -19,7 +23,7 @@
     <form id="categoryForm" class="flex">
       <input type="text" id="categoryName" placeholder="Nama kategori" required>
       <input type="color" id="categoryColor">
-      <input type="text" id="categoryIcon" placeholder="Icon (contoh: 📚)">
+      <input type="text" id="categoryIcon" placeholder="Icon (contoh: 📚)" required>
       <button type="submit">Tambah</button>
     </form>
     <ul id="categoryList" class="category-list"></ul>
@@ -33,7 +37,6 @@
 
       <select id="categorySelect" required></select>
 
-      <!-- DEADLINE BARU -->
       <input type="date" id="deadlineInput">
 
       <button type="submit">Tambah</button>
@@ -44,6 +47,7 @@
   <section class="section">
     <h3>Filter</h3>
 
+    <!-- Filter Kategori -->
     <div id="filterCategory" class="filter-container"></div>
 
     <!-- Filter Status -->
