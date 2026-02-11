@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Todo List App</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="app">
+    <h1>Todo List</h1>
+
+    <!-- Form tambah task -->
+    <form id="taskForm">
+      <input type="text" id="taskInput" placeholder="Tulis task..." />
+      <select id="categorySelect"></select>
+      <button type="submit">Tambah</button>
+    </form>
+
+    <!-- Filter kategori -->
+    <div id="filterCategory"></div>
+
+    <!-- List task -->
+    <ul id="taskList"></ul>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
