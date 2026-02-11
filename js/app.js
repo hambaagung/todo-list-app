@@ -15,6 +15,58 @@ function renderCategories() {
 }
 
 renderCategories();
+const categoryForm = document.getElementById("categoryForm");
+const categoryList = document.getElementById("categoryList");
+
+function saveCategories() {
+  localStorage.setItem("categories", JSON.stringify(categories));
+}
+
+function renderCategoryList() {
+  categoryList.innerHTML = "";
+
+  categories.forEach(cat => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span style="color:${cat.color}">
+        ${cat.icon} ${cat.name}
+      </span>
+      <button onclick="deleteCategory(${cat.id})">❌</button>
+    `;
+    categoryList.appendChild(li);
+  });
+}
+categoryForm.addEventListener("submit", e => {
+  e.preventDefault();
+
+  const name = categoryName.value.trim();
+  const color = categoryColor.value;
+  const icon = categoryIcon.value.trim();
+
+  if (!name || !icon) return alert("Semua field wajib diisi");
+
+  const newCategory = {
+    id: Date.now(),
+    name,
+    color,
+    icon
+  };
+
+  categories.push(newCategory);
+  saveCategories();
+  renderCategories();
+  renderCategoryList();
+
+  categoryForm.reset();
+});
+function deleteCategory(id) {
+  categories = categories.filter(cat => cat.id !== id);
+  saveCategories();
+  renderCategories();
+  renderCategoryList();
+}
+renderCategoryList();
+
 document.getElementById("taskForm").addEventListener("submit", e => {
   e.preventDefault();
 
