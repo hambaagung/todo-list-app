@@ -8,45 +8,74 @@
 </head>
 <body>
 
-  <div class="app">
+<div class="app">
   <h1>Todo List</h1>
 
-  <!-- Kelola Kategori -->
+  <!-- ================= KATEGORI ================= -->
   <section class="section">
     <h3>Kelola Kategori</h3>
     <form id="categoryForm" class="flex">
-      <input type="text" id="categoryName" placeholder="Nama kategori">
+      <input type="text" id="categoryName" placeholder="Nama kategori" required>
       <input type="color" id="categoryColor">
-      <input type="text" id="categoryIcon" placeholder="Icon">
+      <input type="text" id="categoryIcon" placeholder="Icon (contoh: 📚)">
       <button type="submit">Tambah</button>
     </form>
     <ul id="categoryList" class="category-list"></ul>
   </section>
 
-  <!-- Tambah Task -->
+  <!-- ================= TAMBAH TASK ================= -->
   <section class="section">
     <h3>Tambah Task</h3>
     <form id="taskForm" class="flex">
-      <input type="text" id="taskInput" placeholder="Tulis task...">
-      <select id="categorySelect"></select>
+      <input type="text" id="taskInput" placeholder="Tulis task..." required>
+
+      <select id="categorySelect" required></select>
+
+      <!-- DEADLINE BARU -->
+      <input type="date" id="deadlineInput">
+
       <button type="submit">Tambah</button>
     </form>
   </section>
 
-  <!-- Filter -->
+  <!-- ================= FILTER ================= -->
   <section class="section">
-    <h3>Filter Kategori</h3>
+    <h3>Filter</h3>
+
     <div id="filterCategory" class="filter-container"></div>
+
+    <!-- Filter Status -->
+    <div class="filter-status">
+      <button data-status="all">Semua</button>
+      <button data-status="pending">Pending</button>
+      <button data-status="completed">Selesai</button>
+    </div>
   </section>
 
-  <!-- Task List -->
+  <!-- ================= SEARCH ================= -->
+  <section class="section">
+    <h3>Search Task</h3>
+    <input type="text" id="searchInput" placeholder="Cari task...">
+  </section>
+
+  <!-- ================= STATISTIK ================= -->
+  <section class="section">
+    <h3>Statistik</h3>
+    <div id="statsContainer">
+      <p>Total Task: <span id="totalTask">0</span></p>
+      <p>Completed: <span id="completedTask">0</span></p>
+      <p>Pending: <span id="pendingTask">0</span></p>
+    </div>
+  </section>
+
+  <!-- ================= TASK LIST ================= -->
   <section class="section">
     <h3>Daftar Task</h3>
     <ul id="taskList"></ul>
   </section>
+
 </div>
 
-
-  <script src="js/app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
