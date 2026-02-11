@@ -17,7 +17,6 @@ const filterCategory = document.getElementById("filterCategory");
 const categoryName = document.getElementById("categoryName");
 const categoryColor = document.getElementById("categoryColor");
 const categoryIcon = document.getElementById("categoryIcon");
-
 const taskInput = document.getElementById("taskInput");
 
 // ================= SAVE =================
@@ -80,7 +79,6 @@ categoryForm.addEventListener("submit", e => {
   categories.push(newCategory);
   saveCategories();
   renderAll();
-
   categoryForm.reset();
 });
 
@@ -90,7 +88,7 @@ function editCategory(id) {
 
   const newName = prompt("Edit nama kategori:", category.name);
   const newIcon = prompt("Edit icon kategori:", category.icon);
-  const newColor = prompt("Edit warna kategori (contoh: #ff0000):", category.color);
+  const newColor = prompt("Edit warna kategori (#xxxxxx):", category.color);
 
   if (!newName || !newIcon || !newColor) return;
 
@@ -104,8 +102,6 @@ function editCategory(id) {
 
 function deleteCategory(id) {
   categories = categories.filter(cat => cat.id !== id);
-
-  // Hapus task yang pakai kategori ini
   tasks = tasks.filter(task => task.categoryId != id);
 
   saveCategories();
@@ -160,6 +156,7 @@ function renderTasks() {
         </span>
         <div>
           <button onclick="toggleTask(${task.id})">✔</button>
+          <button onclick="editTask(${task.id})">✏</button>
           <button onclick="reactTask(${task.id})">😊</button>
           <button onclick="deleteTask(${task.id})">🗑</button>
         </div>
@@ -174,6 +171,18 @@ function toggleTask(id) {
   if (!task) return;
 
   task.completed = !task.completed;
+  saveTasks();
+  renderTasks();
+}
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  const newText = prompt("Edit task:", task.text);
+  if (!newText) return;
+
+  task.text = newText.trim();
   saveTasks();
   renderTasks();
 }
