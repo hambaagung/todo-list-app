@@ -69,14 +69,22 @@ categoryForm.addEventListener("submit", e => {
     return;
   }
 
-  const newCategory = {
+  const duplicate = categories.find(
+    cat => cat.name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (duplicate) {
+    alert("Kategori sudah ada");
+    return;
+  }
+
+  categories.push({
     id: Date.now(),
     name,
     color,
     icon
-  };
+  });
 
-  categories.push(newCategory);
   saveCategories();
   renderAll();
   categoryForm.reset();
@@ -86,9 +94,9 @@ function editCategory(id) {
   const category = categories.find(cat => cat.id === id);
   if (!category) return;
 
-  const newName = prompt("Edit nama kategori:", category.name);
-  const newIcon = prompt("Edit icon kategori:", category.icon);
-  const newColor = prompt("Edit warna kategori (#xxxxxx):", category.color);
+  const newName = prompt("Edit nama:", category.name);
+  const newIcon = prompt("Edit icon:", category.icon);
+  const newColor = prompt("Edit warna (#xxxxxx):", category.color);
 
   if (!newName || !newIcon || !newColor) return;
 
@@ -114,20 +122,20 @@ taskForm.addEventListener("submit", e => {
   e.preventDefault();
 
   const text = taskInput.value.trim();
+
   if (!text) {
     alert("Task tidak boleh kosong");
     return;
   }
 
-  const task = {
+  tasks.push({
     id: Date.now(),
     text,
     categoryId: categorySelect.value,
     completed: false,
     reaction: ""
-  };
+  });
 
-  tasks.push(task);
   saveTasks();
   taskInput.value = "";
   renderTasks();
@@ -157,7 +165,7 @@ function renderTasks() {
         <div>
           <button onclick="toggleTask(${task.id})">✔</button>
           <button onclick="editTask(${task.id})">✏</button>
-          <button onclick="reactTask(${task.id})">😊</button>
+          <button onclick="quickReact(${task.id})">😊</button>
           <button onclick="deleteTask(${task.id})">🗑</button>
         </div>
       `;
@@ -187,11 +195,11 @@ function editTask(id) {
   renderTasks();
 }
 
-function reactTask(id) {
+function quickReact(id) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
 
-  const emoji = prompt("Masukkan emoji reaksi:");
+  const emoji = prompt("Pilih emoji: 😊🔥💪🚀❤️");
   if (!emoji) return;
 
   task.reaction = emoji;
@@ -232,7 +240,7 @@ function renderFilterButtons() {
   });
 }
 
-// ================= RENDER ALL =================
+// ================= RENDER =================
 function renderAll() {
   renderCategories();
   renderCategoryList();
@@ -240,5 +248,4 @@ function renderAll() {
   renderTasks();
 }
 
-// ================= INIT =================
 renderAll();
