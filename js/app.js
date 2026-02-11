@@ -10,15 +10,15 @@ let activeFilter = null;
 const categoryForm = document.getElementById("categoryForm");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("categorySelect");
+const taskForm = document.getElementById("taskForm");
+const taskList = document.getElementById("taskList");
 const filterCategory = document.getElementById("filterCategory");
 
-const taskForm = document.getElementById("taskForm");
-const taskInput = document.getElementById("taskInput");
-const taskList = document.getElementById("taskList");
+const categoryName = document.getElementById("categoryName");
+const categoryColor = document.getElementById("categoryColor");
+const categoryIcon = document.getElementById("categoryIcon");
 
-// optional (kalau ada di HTML)
-const deadlineInput = document.getElementById("deadlineInput");
-const searchInput = document.getElementById("searchInput");
+const taskInput = document.getElementById("taskInput");
 
 // ================= SAVE =================
 function saveTasks() {
@@ -49,7 +49,10 @@ function renderCategoryList() {
       <span style="color:${cat.color}">
         ${cat.icon} ${cat.name}
       </span>
-      <button onclick="deleteCategory(${cat.id})">❌</button>
+      <div>
+        <button onclick="editCategory(${cat.id})">✏</button>
+        <button onclick="deleteCategory(${cat.id})">❌</button>
+      </div>
     `;
     categoryList.appendChild(li);
   });
@@ -62,35 +65,52 @@ categoryForm.addEventListener("submit", e => {
   const color = categoryColor.value;
   const icon = categoryIcon.value.trim();
 
-  if (!name || !icon) return alert("Semua field wajib diisi");
+  if (!name || !icon) {
+    alert("Semua field wajib diisi");
+    return;
+  }
 
-  categories.push({
+  const newCategory = {
     id: Date.now(),
     name,
     color,
     icon
-  });
+  };
 
+  categories.push(newCategory);
   saveCategories();
-  renderCategories();
-  renderCategoryList();
-  renderFilterButtons();
+  renderAll();
 
   categoryForm.reset();
 });
 
+function editCategory(id) {
+  const category = categories.find(cat => cat.id === id);
+  if (!category) return;
+
+  const newName = prompt("Edit nama kategori:", category.name);
+  const newIcon = prompt("Edit icon kategori:", category.icon);
+  const newColor = prompt("Edit warna kategori (contoh: #ff0000):", category.color);
+
+  if (!newName || !newIcon || !newColor) return;
+
+  category.name = newName.trim();
+  category.icon = newIcon.trim();
+  category.color = newColor.trim();
+
+  saveCategories();
+  renderAll();
+}
+
 function deleteCategory(id) {
   categories = categories.filter(cat => cat.id !== id);
 
-  // hapus task yang kategorinya ikut terhapus
+  // Hapus task yang pakai kategori ini
   tasks = tasks.filter(task => task.categoryId != id);
 
   saveCategories();
   saveTasks();
-  renderCategories();
-  renderCategoryList();
-  renderFilterButtons();
-  renderTasks();
+  renderAll();
 }
 
 // ================= TASK =================
@@ -98,89 +118,80 @@ taskForm.addEventListener("submit", e => {
   e.preventDefault();
 
   const text = taskInput.value.trim();
-  if (!text) return alert("Task tidak boleh kosong");
+  if (!text) {
+    alert("Task tidak boleh kosong");
+    return;
+  }
 
-  tasks.push({
+  const task = {
     id: Date.now(),
     text,
     categoryId: categorySelect.value,
-    deadline: deadlineInput ? deadlineInput.value : null,
     completed: false,
     reaction: ""
-  });
+  };
 
+  tasks.push(task);
   saveTasks();
   taskInput.value = "";
-  if (deadlineInput) deadlineInput.value = "";
-
   renderTasks();
-  renderStats();
 });
 
 function renderTasks() {
   taskList.innerHTML = "";
 
-  let filteredTasks = tasks.filter(task =>
-    !activeFilter || task.categoryId == activeFilter
-  );
+  tasks
+    .filter(task => !activeFilter || task.categoryId == activeFilter)
+    .forEach(task => {
 
-  if (searchInput && searchInput.value) {
-    filteredTasks = filteredTasks.filter(task =>
-      task.text.toLowerCase().includes(searchInput.value.toLowerCase())
-    );
-  }
+      const category = categories.find(cat => cat.id == task.categoryId) || {
+        name: "Unknown",
+        color: "#999",
+        icon: "❓"
+      };
 
-  filteredTasks.forEach(task => {
-    const category = categories.find(cat => cat.id == task.categoryId);
-    if (!category) return;
+      const li = document.createElement("li");
+      li.className = "task";
+      li.style.borderLeft = `5px solid ${category.color}`;
 
-    const li = document.createElement("li");
-    li.className = "task";
-    li.style.borderLeft = `5px solid ${category.color}`;
-
-    li.innerHTML = `
-      <div>
-        <span style="text-decoration:${task.completed ? "line-through" : "none"}">
-          ${category.icon} ${task.text}
+      li.innerHTML = `
+        <span style="text-decoration:${task.completed ? 'line-through' : 'none'}">
+          ${category.icon} ${task.text} ${task.reaction}
         </span>
-        ${task.deadline ? `<small> (Deadline: ${task.deadline})</small>` : ""}
-        ${task.reaction}
-      </div>
-      <div>
-        <button onclick="toggleTask(${task.id})">✔</button>
-        <button onclick="reactTask(${task.id})">😊</button>
-        <button onclick="deleteTask(${task.id})">🗑</button>
-      </div>
-    `;
+        <div>
+          <button onclick="toggleTask(${task.id})">✔</button>
+          <button onclick="reactTask(${task.id})">😊</button>
+          <button onclick="deleteTask(${task.id})">🗑</button>
+        </div>
+      `;
 
-    taskList.appendChild(li);
-  });
+      taskList.appendChild(li);
+    });
 }
 
 function toggleTask(id) {
-  tasks = tasks.map(task =>
-    task.id === id ? { ...task, completed: !task.completed } : task
-  );
-  saveTasks();
-  renderTasks();
-  renderStats();
-}
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
 
-function deleteTask(id) {
-  tasks = tasks.filter(task => task.id !== id);
+  task.completed = !task.completed;
   saveTasks();
   renderTasks();
-  renderStats();
 }
 
 function reactTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
   const emoji = prompt("Masukkan emoji reaksi:");
   if (!emoji) return;
 
-  tasks = tasks.map(task =>
-    task.id === id ? { ...task, reaction: emoji } : task
-  );
+  task.reaction = emoji;
+  saveTasks();
+  renderTasks();
+}
 
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
   saveTasks();
   renderTasks();
 }
@@ -212,29 +223,13 @@ function renderFilterButtons() {
   });
 }
 
-// ================= SEARCH =================
-if (searchInput) {
-  searchInput.addEventListener("input", renderTasks);
-}
-
-// ================= STATS =================
-function renderStats() {
-  const stats = document.getElementById("stats");
-  if (!stats) return;
-
-  const total = tasks.length;
-  const completed = tasks.filter(t => t.completed).length;
-
-  stats.innerHTML = `
-    Total Task: ${total} |
-    Selesai: ${completed} |
-    Belum: ${total - completed}
-  `;
+// ================= RENDER ALL =================
+function renderAll() {
+  renderCategories();
+  renderCategoryList();
+  renderFilterButtons();
+  renderTasks();
 }
 
 // ================= INIT =================
-renderCategories();
-renderCategoryList();
-renderFilterButtons();
-renderTasks();
-renderStats();
+renderAll();
